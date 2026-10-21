@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { DEMO_DATE, inventory, getAvailable, getPriority, formatDate, formatQuantity } from './inventory.js';
+import { inspectInventory } from './planner.js';
+import TodaysPlan from './TodaysPlan.jsx';
+
+const checkedInventory = inspectInventory(inventory);
 
 function Leaf({ className = '' }) {
   return <svg className={className} viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M25 6C13 4 5 10 8 20c10 5 19-2 17-14Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M6 27 21 12M12 21v-7m0 7h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
@@ -10,6 +14,7 @@ const filters = [
   { key: 'today', label: 'Due today' },
   { key: 'soon', label: 'Due soon' },
   { key: 'later', label: 'Later' },
+  { key: 'excluded', label: 'Excluded' },
 ];
 
 export default function App() {
@@ -17,8 +22,8 @@ export default function App() {
   const [query, setQuery] = useState('');
   const todayCount = inventory.filter(item => getPriority(item.deadline).key === 'today').length;
   const soonCount = inventory.filter(item => getPriority(item.deadline).key === 'soon').length;
-  const shownInventory = inventory.filter(item =>
-    (filter === 'all' || getPriority(item.deadline).key === filter) &&
+  const shownInventory = checkedInventory.filter(item =>
+    (filter === 'all' || (filter === 'excluded' ? !item.eligible : getPriority(item.deadline).key === filter)) &&
     `${item.ingredient} ${item.batch}`.toLowerCase().includes(query.trim().toLowerCase()),
   );
 
@@ -48,14 +53,16 @@ export default function App() {
           <div className="table-scroll" role="region" aria-label="Ingredient batch inventory, scroll horizontally on small screens" tabIndex="0">
             <table><caption className="sr-only">Fictional ingredient batches as of {formatDate(DEMO_DATE)}. Date priority does not indicate food safety.</caption><thead><tr><th scope="col">Ingredient</th><th scope="col">Batch</th><th scope="col" className="numeric">In stock</th><th scope="col" className="numeric">Reserved<span className="th-detail">Existing orders</span></th><th scope="col" className="numeric available-heading">Available</th><th scope="col">Use-by date</th><th scope="col">Date priority</th></tr></thead><tbody>{shownInventory.map(item => {
               const priority = getPriority(item.deadline);
-              return <tr key={item.batch}><th scope="row"><div className="ingredient"><span className={`ingredient-art ${item.color}`} aria-hidden="true">{item.symbol}</span><div><span className="ingredient-name">{item.ingredient}</span><span className="ingredient-detail">{item.detail}</span></div></div></th><td className="batch">{item.batch}</td><td className="numeric">{formatQuantity(item.stock, item.unit)}</td><td className="numeric reserved">{formatQuantity(item.reserved, item.unit)}</td><td className="numeric available">{formatQuantity(getAvailable(item), item.unit)}</td><td className="deadline"><time dateTime={item.deadline}>{formatDate(item.deadline)}</time><span>{priority.detail}</span></td><td><span className={`priority ${priority.key}`}><span aria-hidden="true" />{priority.label}</span></td></tr>;
+              return <tr key={`${item.batch}-${item.index}`}><th scope="row"><div className="ingredient"><span className={`ingredient-art ${item.color}`} aria-hidden="true">{item.symbol}</span><div><span className="ingredient-name">{item.ingredient}</span><span className="ingredient-detail">{item.detail}</span></div></div>{item.issues.length > 0 && <span className="row-issue">Excluded: {item.issues.join(' ')}</span>}</th><td className="batch">{item.batch}</td><td className="numeric">{formatQuantity(item.stock, item.unit)}</td><td className="numeric reserved">{formatQuantity(item.reserved, item.unit)}</td><td className="numeric available">{formatQuantity(item.issues.length ? null : getAvailable(item), item.unit)}</td><td className="deadline"><time dateTime={item.deadline}>{formatDate(item.deadline)}</time><span>{priority.detail}</span></td><td><span className={`priority ${item.issues.length ? 'invalid' : priority.key}`}><span aria-hidden="true" />{item.issues.length ? 'Invalid batch' : priority.label}</span></td></tr>;
             })}{shownInventory.length === 0 && <tr><td colSpan="7" className="empty">No batches match your search. Try another ingredient or filter.</td></tr>}</tbody></table>
           </div>
           <div className="table-footer"><span aria-live="polite">Showing {shownInventory.length} of {inventory.length} batches</span><span>kg = kilograms · pcs = individual eggs</span></div>
         </section>
 
+        <TodaysPlan />
+
         <aside className="disclaimer"><span className="info-icon" aria-hidden="true">i</span><div><strong>A demo for better planning.</strong><p>All ingredients, quantities, reservations and use-by dates are fictional. Status shows date priority only, not a food safety assessment.</p></div></aside>
-        <footer className="page-footer"><span><Leaf /> FreshPlate</span><p>Less waste starts with a clearer view.</p><span>HACKATHON DEMO · PHASE 01</span></footer>
+        <footer className="page-footer"><span><Leaf /> FreshPlate</span><p>Less waste starts with a clearer view.</p><span>HACKATHON DEMO · PHASE 02</span></footer>
       </main>
     </div>
   );

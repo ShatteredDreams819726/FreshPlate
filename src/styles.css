@@ -3,3 +3,49 @@
 @media(min-width:1500px){main{padding-left:45px;padding-right:45px}}
 @media(max-width:1100px){.workspace-label{margin-left:0}.read-only{display:none}.panel-heading,.toolbar{padding-left:20px;padding-right:20px}thead th,tbody td,tbody th{padding-left:12px;padding-right:12px}table{min-width:900px}.stat{gap:12px;padding:20px 16px}.date-card{padding:19px}.intro{gap:20px}}
 @media(max-width:760px){.topbar{height:72px;padding:0 6%;gap:12px}.brand{font-size:24px}.brand-mark{width:34px;height:34px}.workspace-label{display:none}.demo-badge{font-size:8px;letter-spacing:1px;padding:7px 9px}main{padding:30px 6% 0}.intro{align-items:flex-start;flex-direction:column;gap:22px;margin-bottom:24px}h1{font-size:38px}.intro-copy{font-size:13px}.date-card{width:100%;padding:16px 20px}.date-card strong{font-size:16px}.date-icon{width:40px;height:44px;font-size:21px}.stats{gap:10px;margin-bottom:24px}.stat{padding:16px 12px;gap:0}.stat-icon{display:none}.stat p{font-size:10px;min-height:24px}.stat strong{font-size:28px}.stat div>span{font-size:9px;line-height:1.5}.panel-heading{padding:22px 18px}.panel-heading h2{font-size:20px}.panel-heading p:last-child{font-size:10px;line-height:1.7}.toolbar{align-items:stretch;flex-direction:column;padding:0 18px 18px;gap:12px}.filters{align-self:flex-start;max-width:100%;flex-wrap:wrap}.filters button{padding:9px 10px;font-size:10px}.search{width:100%}.search input{font-size:12px}.table-footer{padding:15px 18px;flex-direction:column;font-size:10px}.disclaimer{padding:18px 0}.page-footer{flex-wrap:wrap;padding:20px 0}.page-footer p{margin:0}.page-footer>span:last-child{width:100%}}
+
+/* Phase 2: draft planning, retaining the inventory page's visual language. */
+.filters{flex-wrap:wrap}
+.invalid{color:#a24130;background:#fcece6}
+.row-issue{display:block;white-space:normal;max-width:280px;font-size:10px;line-height:1.6;color:#a24130;margin-top:7px}
+.plan-panel{margin-top:30px}
+.draft-badge{font-size:9px;letter-spacing:1px;color:#53734b;background:#edf3e6;padding:9px 12px;border-radius:6px;white-space:nowrap}
+.plan-body{padding:0 27px 27px}
+.plan-body h3{font-size:17px;font-weight:650;letter-spacing:-.3px;margin:0 0 12px}
+.plan-body h4{font-size:14px;line-height:1.5;margin:0;font-weight:650}
+.plan-intro>p,.plan-rules,.plan-notice,.generate-bar>p,.projection-note,.leftovers,.dish-result>p,.dish-result ul,.dish-result details{font-size:12px;line-height:1.8;color:#6b7864}
+.plan-intro>p{max-width:980px;margin:0 0 18px}
+.plan-rules{border:1px solid #e0e6d8;background:#f8faf3;border-radius:9px;padding:14px 17px;margin-bottom:20px}
+summary{cursor:pointer;font-size:12px;font-weight:600;color:#45613e;line-height:1.7}
+.plan-rules li{margin-bottom:7px}.plan-rules ol{padding-left:20px}.plan-rules p{margin-bottom:0}
+.plan-notice{border-left:3px solid #b99c55;background:#f8f3e4;padding:13px 16px;border-radius:0 7px 7px 0;margin:16px 0 22px;color:#776333;overflow-wrap:anywhere}
+.plan-notice ul{margin:7px 0 0;padding-left:18px}.plan-notice p{margin:5px 0 0}
+.recipe-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.recipe-card{border:1px solid #dfe6d6;background:#fffefb;padding:19px;border-radius:10px;display:flex;flex-direction:column;min-width:0}
+.recipe-card .eyebrow{font-size:9px;margin-bottom:8px}
+.recipe-label{font-size:10px;color:#84917b;margin:13px 0 5px}
+.recipe-card ul{list-style:none;margin:0 0 19px;padding:0;flex-grow:1}
+.recipe-card li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:11px;line-height:1.6;color:#718069}
+.recipe-card li strong{color:#4c6343;font-weight:600;white-space:nowrap}
+.recipe-card label{font-size:11px;line-height:1.7;color:#4d6544;font-weight:600;margin-bottom:7px}
+.recipe-card label span{color:#87927e;font-weight:400}
+.recipe-card input{width:100%;border:1px solid #cad7be;border-radius:6px;padding:10px 12px;background:#f8fbf3;color:#344e2b;font-size:17px;font-variant-numeric:tabular-nums}
+.recipe-card input[aria-invalid=true]{border-color:#b85d47;background:#fff6f1}
+.input-hint,.input-error{font-size:10px;line-height:1.6;margin:7px 0 0}.input-hint{color:#84917b}.input-error{color:#a24130}
+.generate-bar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 0;border-bottom:1px solid #e4e9dc}
+.generate-bar>p{margin:0;max-width:620px}
+.generate-button{border:1px solid #274d38;background:#274d38;color:#fffef8;border-radius:7px;padding:13px 19px;font-size:12px;font-weight:650;white-space:nowrap}
+.generate-button>span{margin-left:22px}.generate-button:hover{background:#3c6146}.generate-button:disabled{opacity:.45;cursor:not-allowed}
+.plan-placeholder{text-align:center;padding:35px 16px 18px;color:#6d8062}.plan-placeholder strong{font-size:14px}.plan-placeholder p{font-size:12px;line-height:1.8}
+.fresh-notice{border-color:#66885c;background:#eff5e7;color:#4d6843}.stale-notice{border-color:#c18735;background:#fff0d3;color:#885b20}.error-notice{border-color:#ae4f36;background:#fff0e7;color:#9c4330}
+.result-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:27px 0 14px}.result-heading h3{margin:0}.result-heading>span{font-size:11px;color:#78896c}
+.dish-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.dish-result{padding:18px;border:1px solid #e1e7d9;border-radius:9px;background:#fafbf6;min-width:0}
+.dish-result>div{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.dish-result h4{max-width:65%}
+.portion-count{font-size:23px;color:#4f7342;font-weight:650;white-space:nowrap;text-align:right}.portion-count>span{display:block;font-size:9px;color:#809173;font-weight:400;margin-top:3px}
+.dish-result>p{overflow-wrap:anywhere;margin:13px 0 10px}.dish-result .limit-label{font-size:10px;font-weight:650;color:#526747;margin:15px 0 4px}
+.dish-result ul{padding-left:17px;margin:3px 0 12px}.dish-result li{margin-bottom:4px}.dish-result details{border-top:1px solid #e2e8da;padding-top:10px}.dish-result summary{font-size:11px}
+.projection-note{margin-top:0}.projection-table{border:1px solid #e0e6d8;border-radius:8px}.projection-table table{min-width:970px}.projection-table tbody td,.projection-table tbody th{font-size:11px}
+.leftovers{margin-top:27px}.leftovers>ul{list-style:none;margin:0;padding:0}.leftovers li{border:1px solid #e8dfc3;background:#fcf9ef;border-radius:7px;margin-bottom:10px;padding:14px 17px}.leftovers li>span{display:block;font-size:10px;color:#8d815e;margin-top:5px}.leftovers p{margin:7px 0 0}.leftovers strong{color:#7d6c3f}
+@media(max-width:1100px){.toolbar{align-items:flex-start}.search{flex-shrink:0;width:230px}.plan-body{padding-left:20px;padding-right:20px}.recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.toolbar{align-items:stretch}.search{width:100%}.plan-body{padding:0 18px 20px}.draft-badge{display:none}.recipe-grid,.dish-results{grid-template-columns:1fr}.generate-bar,.result-heading{flex-direction:column;align-items:stretch}.generate-button{width:100%}.plan-rules{padding:12px}.dish-result h4{max-width:70%}}
