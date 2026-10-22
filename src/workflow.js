@@ -107,6 +107,7 @@ export function transition(state, action) {
   }
   requireCondition(timestamp(action.time), 'A valid actual operation timestamp is required.');
   if (action.type === 'GENERATE') {
+    requireCondition(!activePlan(next), 'A plan is already Approved. Complete or cancel the active plan before generating another.');
     requireCondition(typeof action.planId === 'string' && /^[A-Za-z0-9-]+$/.test(action.planId) && !next.plans.some(plan => plan.id === action.planId), 'A unique plan ID is required.');
     const result = generatePlan(inventoryForPlanner(next), next.caps);
     const plan = { id: action.planId, status: 'Draft', createdAt: action.time,

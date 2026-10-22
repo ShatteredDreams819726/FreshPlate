@@ -1,22 +1,24 @@
+import { extraPrepCaps } from './demoInputs.js';
+
 // Fixed display/allocation order. kg values are converted to whole grams in planner.js.
 export const recipes = [
-  { id: 'tomato-egg', name: 'Tomato & Egg Stir-fry', defaultCap: 16, ingredients: [
+  { id: 'tomato-egg', name: 'Tomato & Egg Stir-fry', defaultCap: extraPrepCaps['tomato-egg'], ingredients: [
     { ingredient: 'Tomatoes', quantity: 0.2, unit: 'kg' },
     { ingredient: 'Eggs', quantity: 2, unit: 'pcs' },
   ] },
-  { id: 'pepper-chicken', name: 'Pepper Chicken', defaultCap: 12, ingredients: [
+  { id: 'pepper-chicken', name: 'Pepper Chicken', defaultCap: extraPrepCaps['pepper-chicken'], ingredients: [
     { ingredient: 'Green peppers', quantity: 0.12, unit: 'kg' },
     { ingredient: 'Chicken', quantity: 0.15, unit: 'kg' },
   ] },
-  { id: 'potato-chicken', name: 'Potato Chicken Stew', defaultCap: 10, ingredients: [
+  { id: 'potato-chicken', name: 'Potato Chicken Stew', defaultCap: extraPrepCaps['potato-chicken'], ingredients: [
     { ingredient: 'Potatoes', quantity: 0.25, unit: 'kg' },
     { ingredient: 'Chicken', quantity: 0.2, unit: 'kg' },
     { ingredient: 'Carrots', quantity: 0.05, unit: 'kg' },
   ] },
-  { id: 'cabbage', name: 'Stir-fried Cabbage', defaultCap: 16, ingredients: [
+  { id: 'cabbage', name: 'Stir-fried Cabbage', defaultCap: extraPrepCaps.cabbage, ingredients: [
     { ingredient: 'Chinese cabbage', quantity: 0.2, unit: 'kg' },
   ] },
-  { id: 'egg-rice', name: 'Egg Fried Rice', defaultCap: 12, ingredients: [
+  { id: 'egg-rice', name: 'Egg Fried Rice', defaultCap: extraPrepCaps['egg-rice'], ingredients: [
     { ingredient: 'Cooked rice', quantity: 0.25, unit: 'kg' },
     { ingredient: 'Eggs', quantity: 1, unit: 'pcs' },
     { ingredient: 'Carrots', quantity: 0.04, unit: 'kg' },

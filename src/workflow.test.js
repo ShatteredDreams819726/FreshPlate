@@ -88,12 +88,37 @@ test('stale caps, empty drafts, insufficient availability and an active plan blo
   const insufficient = draft();
   insufficient.inventory.find(batch => batch.batch === 'CAR-1019-A').stock = 1.5;
   unchangedOnFailure(insufficient, state => act(state, 'APPROVE'), /Insufficient available/);
-  const second = act(approved(), 'GENERATE', 'FP-second');
+  const twoDrafts = act(draft(), 'GENERATE', 'FP-second');
+  const second = act(twoDrafts, 'APPROVE', 'FP-test');
   unchangedOnFailure(second, state => act(state, 'APPROVE', 'FP-second'), /already Approved/);
   const afterCancel = act(second, 'CANCEL', 'FP-test');
   assert.ok(isDraftStale(afterCancel, currentPlan(afterCancel)));
   unchangedOnFailure(afterCancel, state => act(state, 'APPROVE', 'FP-second'), /Needs regeneration/);
   validateState(afterCancel);
+});
+
+test('an approved plan blocks generation without adding a plan or log, including after cap edits and restore', () => {
+  const edited = transition(approved(), { type: 'SET_CAP', recipeId: 'tomato-egg', value: '0' });
+  const storage = storageMock();
+  const raw = saveDemo(storage, edited, null);
+  const restored = loadDemo(storage).state;
+  const originalPlanId = restored.currentPlanId;
+  const originalLogCount = restored.activity.length;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    unchangedOnFailure(restored, state => act(state, 'GENERATE', `FP-blocked-${attempt}`), /Complete or cancel.*before generating/);
+  }
+  assert.equal(restored.plans.length, 1);
+  assert.equal(restored.activity.length, originalLogCount);
+  assert.equal(restored.currentPlanId, originalPlanId);
+  assert.equal(storage.getItem(STORAGE_KEY), raw);
+  for (const operation of ['COMPLETE', 'CANCEL']) {
+    const resolved = act(restored, operation);
+    const next = act(resolved, 'GENERATE', `FP-after-${operation}`);
+    assert.equal(currentPlan(next).status, 'Draft');
+    assert.equal(next.plans.length, 2);
+    assert.equal(next.activity.length, originalLogCount + 2);
+    validateState(next);
+  }
 });
 
 test('multi-batch approval, completion and cancellation failures are all-or-nothing', () => {

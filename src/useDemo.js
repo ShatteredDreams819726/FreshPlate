@@ -37,10 +37,10 @@ export function useDemo() {
       savedRef.current = update;
       setSaved(update);
       setError('');
-      setMessage({ GENERATE: 'Draft generated and saved. No inventory or reservations changed.',
-        APPROVE: 'Plan approved and saved. Stock is unchanged; plan reservations are in place. Next: staff can complete preparation or the owner can cancel.',
-        COMPLETE: 'Preparation completed and saved. Stock was deducted once and this plan’s reservations were released. Existing-order reservations are unchanged.',
-        CANCEL: 'Plan cancelled and saved. Its reservations were released. Stock and existing-order reservations are unchanged.' }[action.type] ?? '');
+      setMessage({ GENERATE: 'Draft ready. Next: review the portions and approve the plan.',
+        APPROVE: 'Ingredients reserved. Next: complete preparation when the food is ready.',
+        COMPLETE: 'Preparation recorded. Next: view Activity Log for consumed batches.',
+        CANCEL: 'Plan cancelled; reservations released. Next: generate a new plan.' }[action.type] ?? '');
     } catch (failure) {
       setError(`Operation not applied. ${failure.message}`);
       if (failure.message.startsWith('Another tab changed')) setConflict(true);
@@ -53,12 +53,12 @@ export function useDemo() {
     savedRef.current = update;
     setSaved(update);
     setError(update.error);
-    setMessage(update.error ? '' : 'Saved demo restored.');
+    setMessage(update.error ? '' : "Saved demo restored. Continue in Today's Plan.");
     setConflict(false);
   }
 
   function reset() {
-    if (!window.confirm('Reset Demo? This will replace this browser’s saved inventory and clear all plans and activity. This cannot be undone.')) return;
+    // ResetDemoControl asks for confirmation before invoking this action.
     try {
       const state = createInitialState();
       const raw = saveDemo(window.localStorage, state, null, true);
@@ -67,7 +67,7 @@ export function useDemo() {
       setSaved(update);
       setConflict(false);
       setError('');
-      setMessage('Demo reset and saved. Initial inventory restored; all plans and activity cleared.');
+      setMessage('Demo reset. Start with Inventory, then generate a new plan.');
     } catch (failure) { setError(`Reset not applied. ${failure.message}`); setMessage(''); }
   }
 
