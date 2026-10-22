@@ -1,9 +1,14 @@
 import { useState } from 'react';
-import { DEMO_DATE, inventory, getAvailable, getPriority, formatDate, formatQuantity } from './inventory.js';
+import { DEMO_DATE, getAvailable, getPriority, formatDate, formatQuantity } from './inventory.js';
 import { inspectInventory } from './planner.js';
 import TodaysPlan from './TodaysPlan.jsx';
+import { inventoryForPlanner, planReserved } from './workflow.js';
+import { useDemo } from './useDemo.js';
+import ActivityLog from './ActivityLog.jsx';
 
-const checkedInventory = inspectInventory(inventory);
+function StorageControls({ demo }) {
+  return <div className="storage-controls"><div><strong>Simulated data · Stored in this browser only</strong><p>Owner and staff are demo roles, not access controls. Keep this demo in one tab. Reset requires confirmation.</p></div><div className="workflow-buttons"><button type="button" className="secondary-button" onClick={demo.reload}>Reload Saved Demo</button><button type="button" className="cancel-button" onClick={demo.reset}>Reset Demo</button></div>{demo.error && <p role="alert" className="plan-notice error-notice">{demo.error}</p>}{demo.message && <p role="status" className="plan-notice fresh-notice">{demo.message}</p>}</div>;
+}
 
 function Leaf({ className = '' }) {
   return <svg className={className} viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M25 6C13 4 5 10 8 20c10 5 19-2 17-14Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M6 27 21 12M12 21v-7m0 7h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
@@ -20,6 +25,10 @@ const filters = [
 export default function App() {
   const [filter, setFilter] = useState('all');
   const [query, setQuery] = useState('');
+  const demo = useDemo();
+  if (!demo.state) return <div className="app"><main><h1>FreshPlate</h1><StorageControls demo={demo} /><p>Inventory is hidden until saved data can be restored or you explicitly reset the demo. No initial inventory has replaced your saved data.</p></main></div>;
+  const inventory = inventoryForPlanner(demo.state);
+  const checkedInventory = inspectInventory(inventory);
   const todayCount = inventory.filter(item => getPriority(item.deadline).key === 'today').length;
   const soonCount = inventory.filter(item => getPriority(item.deadline).key === 'soon').length;
   const shownInventory = checkedInventory.filter(item =>
@@ -36,6 +45,7 @@ export default function App() {
       </header>
 
       <main id="main">
+        <StorageControls demo={demo} />
         <section className="intro" aria-labelledby="page-title">
           <div><p className="eyebrow">A FRESH PERSPECTIVE ON YOUR KITCHEN</p><h1 id="page-title">Good ingredients.<br /><span>Better possibilities.</span></h1><p className="intro-copy">Helping small Chinese restaurants turn near-expiry ingredients into actionable prep plans.</p></div>
           <aside className="date-card"><span className="date-icon" aria-hidden="true">21</span><div><p className="eyebrow">DEMO DATE · FIXED</p><strong>{formatDate(DEMO_DATE)}</strong><p>All date priorities use this date.</p></div></aside>
@@ -48,21 +58,22 @@ export default function App() {
         </section>
 
         <section className="inventory-panel" aria-labelledby="inventory-title">
-          <div className="panel-heading"><div><p className="eyebrow">KNOW WHAT YOU HAVE</p><h2 id="inventory-title">Your ingredient inventory</h2><p>Available = In stock − Reserved for existing orders</p></div><span className="read-only">Inventory overview · Read only</span></div>
+          <div className="panel-heading"><div><p className="eyebrow">KNOW WHAT YOU HAVE</p><h2 id="inventory-title">Your ingredient inventory</h2><p>Total reserved = Existing orders + Active plan · Available = In stock − Total reserved</p></div><span className="read-only">Live demo inventory</span></div>
           <div className="toolbar"><div className="filters" role="group" aria-label="Filter by date priority">{filters.map(item => <button key={item.key} type="button" aria-pressed={filter === item.key} className={filter === item.key ? 'active' : ''} onClick={() => setFilter(item.key)}>{item.label}{item.key === 'all' && <span>{inventory.length}</span>}</button>)}</div><label className="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input type="search" aria-label="Search ingredient or batch" placeholder="Search ingredient or batch…" value={query} onChange={event => setQuery(event.target.value)} /></label></div>
           <div className="table-scroll" role="region" aria-label="Ingredient batch inventory, scroll horizontally on small screens" tabIndex="0">
-            <table><caption className="sr-only">Fictional ingredient batches as of {formatDate(DEMO_DATE)}. Date priority does not indicate food safety.</caption><thead><tr><th scope="col">Ingredient</th><th scope="col">Batch</th><th scope="col" className="numeric">In stock</th><th scope="col" className="numeric">Reserved<span className="th-detail">Existing orders</span></th><th scope="col" className="numeric available-heading">Available</th><th scope="col">Use-by date</th><th scope="col">Date priority</th></tr></thead><tbody>{shownInventory.map(item => {
+            <table><caption className="sr-only">Live fictional ingredient batches. Date priority uses {formatDate(DEMO_DATE)} and does not indicate food safety.</caption><thead><tr><th scope="col">Ingredient</th><th scope="col">Batch</th><th scope="col" className="numeric">In stock</th><th scope="col" className="numeric">Order reserved</th><th scope="col" className="numeric">Plan reserved</th><th scope="col" className="numeric">Total reserved</th><th scope="col" className="numeric available-heading">Available</th><th scope="col">Use-by date</th><th scope="col">Date priority</th></tr></thead><tbody>{shownInventory.map(item => {
               const priority = getPriority(item.deadline);
-              return <tr key={`${item.batch}-${item.index}`}><th scope="row"><div className="ingredient"><span className={`ingredient-art ${item.color}`} aria-hidden="true">{item.symbol}</span><div><span className="ingredient-name">{item.ingredient}</span><span className="ingredient-detail">{item.detail}</span></div></div>{item.issues.length > 0 && <span className="row-issue">Excluded: {item.issues.join(' ')}</span>}</th><td className="batch">{item.batch}</td><td className="numeric">{formatQuantity(item.stock, item.unit)}</td><td className="numeric reserved">{formatQuantity(item.reserved, item.unit)}</td><td className="numeric available">{formatQuantity(item.issues.length ? null : getAvailable(item), item.unit)}</td><td className="deadline"><time dateTime={item.deadline}>{formatDate(item.deadline)}</time><span>{priority.detail}</span></td><td><span className={`priority ${item.issues.length ? 'invalid' : priority.key}`}><span aria-hidden="true" />{item.issues.length ? 'Invalid batch' : priority.label}</span></td></tr>;
-            })}{shownInventory.length === 0 && <tr><td colSpan="7" className="empty">No batches match your search. Try another ingredient or filter.</td></tr>}</tbody></table>
+              return <tr key={`${item.batch}-${item.index}`}><th scope="row"><div className="ingredient"><span className={`ingredient-art ${item.color}`} aria-hidden="true">{item.symbol}</span><div><span className="ingredient-name">{item.ingredient}</span><span className="ingredient-detail">{item.detail}</span></div></div>{item.issues.length > 0 && <span className="row-issue">Excluded: {item.issues.join(' ')}</span>}</th><td className="batch">{item.batch}</td><td className="numeric">{formatQuantity(item.stock, item.unit)}</td><td className="numeric reserved">{formatQuantity(item.orderReserved, item.unit)}</td><td className="numeric reserved">{formatQuantity(planReserved(item), item.unit)}</td><td className="numeric reserved">{formatQuantity(item.reserved, item.unit)}</td><td className="numeric available">{formatQuantity(item.issues.length ? null : getAvailable(item), item.unit)}</td><td className="deadline"><time dateTime={item.deadline}>{formatDate(item.deadline)}</time><span>{priority.detail}</span></td><td><span className={`priority ${item.issues.length ? 'invalid' : priority.key}`}><span aria-hidden="true" />{item.issues.length ? 'Invalid batch' : priority.label}</span></td></tr>;
+            })}{shownInventory.length === 0 && <tr><td colSpan="9" className="empty">No batches match your search. Try another ingredient or filter.</td></tr>}</tbody></table>
           </div>
           <div className="table-footer"><span aria-live="polite">Showing {shownInventory.length} of {inventory.length} batches</span><span>kg = kilograms · pcs = individual eggs</span></div>
         </section>
 
-        <TodaysPlan />
+        <TodaysPlan demo={demo} />
+        <ActivityLog activity={demo.state.activity} />
 
         <aside className="disclaimer"><span className="info-icon" aria-hidden="true">i</span><div><strong>A demo for better planning.</strong><p>All ingredients, quantities, reservations and use-by dates are fictional. Status shows date priority only, not a food safety assessment.</p></div></aside>
-        <footer className="page-footer"><span><Leaf /> FreshPlate</span><p>Less waste starts with a clearer view.</p><span>HACKATHON DEMO · PHASE 02</span></footer>
+        <footer className="page-footer"><span><Leaf /> FreshPlate</span><p>Less waste starts with a clearer view.</p><span>HACKATHON DEMO · PHASE 03</span></footer>
       </main>
     </div>
   );
