@@ -2,6 +2,8 @@
 
 Turn soon-to-expire ingredients into actionable prep plans for small Chinese restaurants.
 
+Live Demo: [https://fresh-plate-psi.vercel.app](https://fresh-plate-psi.vercel.app)
+
 ## The problem
 
 A restaurant can have ingredients approaching their use-by dates while some stock is already reserved for existing orders. Deciding what extra dishes to prepare requires checking individual batches, shared ingredients and realistic prep limits together. FreshPlate turns that information into a draft the owner can review and approve, staff can mark as prepared, and the restaurant can track through recorded batch consumption.
