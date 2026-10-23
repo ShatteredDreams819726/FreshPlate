@@ -33,6 +33,16 @@ Per-serving recipes and their allocation order are defined in `src/recipes.js`:
 
 This deterministic heuristic is not globally optimal; recipe order affects results. It does not model staffing, equipment, profitability, food safety or demand.
 
+Owner caps are preparation limits supplied by the owner, not sales forecasts or guarantees of sale. Dates indicate planning priority, not a food-safety assessment. Owner and staff are demonstration roles, not authentication or permission controls.
+
+### Reading the plan
+
+Dish cards separate two questions: **why this dish** (the quantities actually allocated from priority batches) and **what stopped further servings** (the cap, insufficient ingredients or exhausted priority stock in the final shared budget). All applicable limits are retained in a short sentence. These are final-budget limits of this heuristic, not a claim of a globally maximum serving count. Supporting stock from later batches is excluded from the priority-use reason, but remains visible under **View batch allocation**.
+
+**Remaining priority stock** is available stock after both existing reservations and this plan's allocations, grouped by batch. Reasons distinguish prep caps, missing recipes, insufficient supporting ingredients and quantities below another serving. Multiple applicable factors are combined without repeating recipe arithmetic. For example, eggs left when tomatoes and rice are insufficient show a supporting-ingredient shortage. Completed plans retain these quantities as generation-time estimates; **Recorded consumption** shows actual completion changes separately.
+
+`src/planExplanation.js` is a read-only presentation layer over saved allocations, final batch projections and saved recipes. It derives structured limiting factors using the planner's final-budget comparisons; it never parses legacy English explanations, reruns allocation or uses edited recipes to reinterpret a saved plan. Existing snapshot and activity formats remain unchanged. Per-serving ingredients are under **Recipes**, and full source stock, reservations and projections remain under **Planned batch details**.
+
 ### Interpreting quantities
 
 - Total reserved = existing-order reservations + active-plan reservations.
@@ -96,12 +106,12 @@ The automated suite covers:
 
 - `src/planner.test.js`: shared ingredients, reservations, date boundaries, expired/invalid batches, zero/invalid caps, determinism and non-mutation.
 - `src/workflow.test.js`: approval, completion, cancellation, repeated-action guards, stale drafts, active-plan generation blocking, atomic failures and save/restore consistency.
-- `src/planSummary.test.js`: deduplicated batch counts and recorded-versus-planned summaries.
+- `src/planSummary.test.js`: deduplicated batch counts, recorded-versus-planned summaries, allocation-based concise reasons, complete limiting factors and differentiated remaining-stock reasons without snapshot mutation.
 - `demo/demo.test.js`: full CLI/web snapshot parity for both scenarios, input isolation, reporting and the dependency-free seven-file upload.
 - `src/dataEntry.test.js`: manual import, explicit units, duplicate confirmation, custom catalogs, planning dates and safe version-1 migration. See [Stock & Recipe Entry](data-entry.md) for the current workflow and persistence schema.
 - `src/extraction.test.js`: mocked Gemini responses, schema/semantic validation, safe diagnostics, API failures, limits and the shared local HTTP endpoint.
 - `src/importReview.test.js`: actionable review issues, date normalization, leap years, timezone independence, calculation confirmation and non-mutating previews.
-- `src/presentation.test.js`: rendered labels, ingredient icons, batch presentation, native date inputs and duplicate-alert visibility; image-processing checks use controlled fixtures.
+- `src/presentation.test.js`: rendered labels, ingredient icons, batch presentation, native date inputs, duplicate-alert visibility and concise plan cards across draft/stale/empty/completed states; image-processing checks use controlled fixtures.
 
 The owner has reported manual acceptance of the current functionality; the coding agent did not perform browser automation. After a new deployment, recheck desktop/narrow-screen layouts and the full workflow, including refresh recovery of an Approved plan. Manual acceptance and automated test coverage are separate forms of validation.
 

@@ -83,3 +83,48 @@ test('editable preview renders one duplicate alert and labelled native dates; re
     assert.doesNotMatch(html,/required|Source:/);
   }finally{await server.close();}
 });
+
+test('plan cards show concise snapshot reasons, collapsed allocations and remaining stock across workflow states', async () => {
+  const server = await createServer({ envDir: false, server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { default: TodaysPlan } = await server.ssrLoadModule('/src/TodaysPlan.jsx');
+    const render = state => renderToStaticMarkup(React.createElement(TodaysPlan, { demo: { state, run() {}, blocked: false }, onViewLog() {} }));
+    let state = createInitialState();
+    assert.match(render(state), /Keep the sample caps or adjust them/);
+    state = transition(state, { type: 'GENERATE', planId: 'FP-concise', time: '2026-10-23T04:00:00.000Z' });
+    const original = structuredClone(state);
+    let html = render(state);
+    assert.match(html, /Uses 3.2 kg of tomatoes and 4 eggs from priority batches\./);
+    assert.match(html, /<p class="dish-limit">Prep limit reached\.<\/p>/);
+    assert.equal((html.match(/<details><summary>View batch allocation<\/summary>/g) ?? []).length, 5);
+    assert.doesNotMatch(html, /<details[^>]*\bopen\b/);
+    assert.match(html, /<h3>Remaining priority stock<\/h3>/);
+    assert.match(html, /<th scope="col">Reason<\/th>/);
+    assert.match(html, /<summary>Recipes<\/summary>/);
+    assert.match(html, /<summary>Excluded batches/);
+    assert.doesNotMatch(html, /kg is converted|sales forecasts|Dates show priority|demo roles|calculation rules|needed for another serving|Why these dishes|Priority stock left unallocated/);
+    assert.deepEqual(state, original);
+    // Rendering must use the frozen recipe version, even after an edit makes it stale.
+    const edited = structuredClone(state);
+    edited.recipes[0].ingredients[0].quantity = 999;
+    edited.capsRevision += 1;
+    html = render(edited);
+    assert.match(html, /Needs regeneration/);
+    assert.match(html, /<p class="dish-limit">Prep limit reached\.<\/p>/);
+    assert.doesNotMatch(html, /Limited by available tomatoes/);
+    state = transition(state, { type: 'APPROVE', planId: 'FP-concise', time: '2026-10-23T04:01:00.000Z' });
+    state = transition(state, { type: 'COMPLETE', planId: 'FP-concise', time: '2026-10-23T04:02:00.000Z' });
+    html = render(state);
+    assert.match(html, /Recorded consumption/);
+    assert.match(html, /Planned available remainder at generation/);
+    assert.match(html, /actual consumption is recorded above/);
+    let empty = createInitialState();
+    for (const recipe of empty.recipes) empty = transition(empty, { type: 'SET_CAP', recipeId: recipe.id, value: '0' });
+    empty = transition(empty, { type: 'GENERATE', planId: 'FP-empty', time: '2026-10-23T04:00:00.000Z' });
+    html = render(empty);
+    assert.match(html, /No feasible servings under these caps/);
+    assert.match(html, /Increase a cap or check priority stock/);
+    assert.match(html, /Dishes not planned/);
+    assert.match(html, /disabled="">Approve Plan/);
+  } finally { await server.close(); }
+});

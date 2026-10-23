@@ -1,9 +1,10 @@
-import { batchLabel, displayBatchText } from './ingredientPresentation.js';
+import { batchLabel } from './ingredientPresentation.js';
 import { formatDate, formatQuantity } from './inventory.js';
 import { validateCaps } from './recipes.js';
 import { inspectInventory } from './planner.js';
 import { activePlan, currentPlan, inventoryForPlanner, isDraftStale, planningDate } from './workflow.js';
 import { plannedSummary, recordedSummary } from './planSummary.js';
+import { dishLimitFacts, limitText, recommendationText, remainingStockFacts, remainingStockText } from './planExplanation.js';
 import PlanActions from './PlanActions.jsx';
 import RecordedConsumption from './RecordedConsumption.jsx';
 
@@ -13,6 +14,7 @@ export default function TodaysPlan({ demo, onViewLog }) {
   const recipes = state.recipes;
   const pendingPlan = activePlan(state);
   const result = plan?.snapshot.result;
+  const savedRecipes = plan?.snapshot.recipes;
   const errors = validateCaps(state.caps, recipes);
   const stale = plan && isDraftStale(state, plan);
   const completion = state.activity.find(event => event.planId === plan?.id && event.action === 'Completed');
@@ -43,12 +45,20 @@ export default function TodaysPlan({ demo, onViewLog }) {
         {result.totalPortions === 0 && <div className="plan-notice"><strong>No feasible servings under these caps.</strong><p>Increase a cap or check priority stock in Inventory, then generate again. Open the reasons below for dish-level limits.</p></div>}
         {completion && <RecordedConsumption event={completion} inventory={state.inventory} />}
         <div className="result-heading"><h3>{completion ? 'Prepared dishes' : 'Planned dishes'}</h3>{stale && <span>Previous draft · regenerate before approval</span>}</div>
-        <div className="dish-results compact-dishes">{(completion ? completion.dishes : result.dishes).filter(dish => dish.portions > 0).map(dish => <article className="dish-result" key={dish.id ?? dish.name}><h4>{dish.name}</h4><span className="portion-count">{dish.portions}<span>servings</span></span></article>)}</div>
-        <details className="detail-panel"><summary>Why these dishes? View reasons &amp; allocation</summary>{result.dishes.map(dish => <article className="reason-detail" key={dish.id}><h4>{dish.name} · {dish.portions} servings</h4><p>{displayBatchText(dish.reason, state.inventory)}</p><ul>{dish.limits.map(limit => <li key={limit}>{limit}</li>)}</ul>{dish.allocations.length > 0 && <details><summary>Planned batch allocation</summary><ul>{dish.allocations.map(item => <li key={item.batch}>{item.ingredient} / {batchLabel(item, state.inventory)}: {formatQuantity(item.quantity, item.unit)}</li>)}</ul></details>}</article>)}</details>
+        <div className="dish-results compact-dishes">{result.dishes.filter(dish => dish.portions > 0).map(dish => <article className="dish-result" key={dish.id}>
+          <div className="dish-result-heading"><h4>{dish.name}</h4><span className="portion-count">{dish.portions}<span>servings</span></span></div>
+          <p>{recommendationText(dish)}</p>
+          <p className="dish-limit">{limitText(dishLimitFacts(dish, savedRecipes.find(recipe => recipe.id === dish.id), result))}</p>
+          <details><summary>View batch allocation</summary><ul>{dish.allocations.map(item => <li key={item.batch}>{item.ingredient} / {batchLabel(item, state.inventory)}: {formatQuantity(item.quantity, item.unit)}</li>)}</ul></details>
+        </article>)}</div>
+        {result.dishes.some(dish => dish.portions === 0) && <details className="detail-panel"><summary>Dishes not planned</summary>{result.dishes.filter(dish => dish.portions === 0).map(dish => <article className="reason-detail" key={dish.id}><h4>{dish.name} · 0 servings</h4><p>{limitText(dishLimitFacts(dish, savedRecipes.find(recipe => recipe.id === dish.id), result))}</p></article>)}</details>}
+        <section className="remaining-priority" aria-label="Remaining priority stock"><h3>Remaining priority stock</h3><p className="projection-note">{completion ? 'Planned available remainder at generation, after reservations and plan allocation; actual consumption is recorded above.' : 'Planned available remainder after reservations and this plan’s allocation.'}</p>
+          {result.leftovers.length ? <div className="table-scroll remaining-table" role="region" aria-label="Remaining priority stock by batch" tabIndex="0"><table><thead><tr><th scope="col">Ingredient</th><th scope="col">Batch</th><th scope="col">Remaining</th><th scope="col">Reason</th></tr></thead><tbody>{result.leftovers.map(batch => <tr key={batch.batch}><th scope="row">{batch.ingredient}</th><td>{batchLabel(batch, state.inventory)}</td><td>{formatQuantity(batch.remainingAvailable, batch.unit)}</td><td>{remainingStockText(remainingStockFacts(batch, result, savedRecipes))}</td></tr>)}</tbody></table></div> : <p>No priority stock remains unallocated in this plan.</p>}
+        </section>
         <details className="detail-panel"><summary>Planned batch details ({result.projections.length})</summary><p className="projection-note">Generation-time estimates. Current stock is in Inventory; actual changes are in Activity Log.</p><div className="table-scroll projection-table" role="region" aria-label="Planned batch use and remaining stock" tabIndex="0"><table><thead><tr><th scope="col">Ingredient / Batch</th><th scope="col">Use-by</th><th scope="col">Source stock</th><th scope="col">Reserved</th><th scope="col">Planned use</th><th scope="col">Projected stock</th><th scope="col">Unallocated</th></tr></thead><tbody>{result.projections.map((batch, index) => <tr key={`${batch.batch}-${index}`}><th scope="row"><span className="ingredient-name">{batch.ingredient}</span><span className="ingredient-detail">{batchLabel(batch, state.inventory)}</span>{batch.excludedReason && <span className="row-issue">{batch.excludedReason}</span>}</th><td>{formatDate(batch.deadline)}</td><td>{formatQuantity(batch.stock, batch.unit)}</td><td>{formatQuantity(batch.reserved, batch.unit)}</td><td>{formatQuantity(batch.plannedUse, batch.unit)}</td><td>{formatQuantity(batch.projectedStock, batch.unit)}</td><td>{batch.eligible ? formatQuantity(batch.remainingAvailable, batch.unit) : 'Excluded'}</td></tr>)}</tbody></table></div></details>
-        <details className="detail-panel"><summary>Priority stock left unallocated ({result.leftovers.length} batches)</summary>{result.leftovers.length ? <ul>{result.leftovers.map(batch => <li key={batch.batch}><strong>{batch.ingredient} / {batchLabel(batch, state.inventory)}: {formatQuantity(batch.remainingAvailable, batch.unit)}</strong><p>{displayBatchText(batch.explanation, state.inventory)}</p></li>)}</ul> : <p>No unallocated priority stock remains in this plan's snapshot.</p>}</details>
       </div>}
-      <details className="detail-panel"><summary>Recipes &amp; calculation rules</summary><p>Quantities per serving, in allocation order. Seasonings are assumed sufficient.</p><ol>{recipes.map(recipe => <li key={recipe.id}><strong>{recipe.name}</strong>: {recipe.ingredients.map(part => `${part.ingredient} ${formatQuantity(part.quantity, part.unit)}`).join(' + ')}</li>)}</ol><p>Use earliest-expiring priority batches first, from today through two days ahead. Each serving uses the shared, unreserved budget. Later batches can supply supporting ingredients. Expired or invalid batches are excluded.</p><p>kg is converted to whole grams; eggs remain whole pieces. Owner caps are limits, not sales forecasts. Dates show priority, not food safety. Owner and staff are demo roles.</p>{exclusions.length > 0 && <><h4>Excluded batches</h4><ul>{exclusions.map((batch, index) => <li key={`${batch.batch}-${index}`}>{batchLabel(batch, state.inventory)}: {batch.issues.length ? batch.issues.join(' ') : 'Past use-by date.'}</li>)}</ul></>}</details>
+      <details className="detail-panel"><summary>Recipes</summary><p>Ingredients per serving</p><ol>{recipes.map(recipe => <li key={recipe.id}><strong>{recipe.name}</strong>: {recipe.ingredients.map(part => `${part.ingredient} ${formatQuantity(part.quantity, part.unit)}`).join(' + ')}</li>)}</ol></details>
+      {exclusions.length > 0 && <details className="detail-panel"><summary>Excluded batches ({exclusions.length})</summary><ul>{exclusions.map((batch, index) => <li key={`${batch.batch}-${index}`}>{batchLabel(batch, state.inventory)}: {batch.issues.length ? batch.issues.join(' ') : 'Past use-by date.'}</li>)}</ul></details>}
     </div>
   </section>;
 }
