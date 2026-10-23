@@ -1,8 +1,9 @@
 import { createInitialState, validateState } from './workflow.js';
 import { migrateV1 } from './migration.js';
+import { backfillPlanNumbers } from './planNumbers.js';
 
 export const STORAGE_KEY = 'freshplate-demo';
-export const DATA_VERSION = 2;
+export const DATA_VERSION = 3;
 export const LEGACY_BACKUP_KEY = `${STORAGE_KEY}:v1-backup`;
 
 export function loadDemo(storage) {
@@ -12,13 +13,14 @@ export function loadDemo(storage) {
   if (raw === null) return { state: createInitialState(), raw: null };
   try {
     const saved = JSON.parse(raw);
-    if (saved?.version === 1) {
-      const state = validateState(migrateV1(saved.state));
+    if (saved?.version === 1 || saved?.version === 2) {
+      const state = validateState(backfillPlanNumbers(saved.version === 1 ? migrateV1(saved.state) : saved.state));
       const upgraded = JSON.stringify({ version: DATA_VERSION, state });
       if (storage.getItem(STORAGE_KEY) !== raw) throw new Error('Saved data changed during migration. Retry loading.');
-      if (storage.getItem(LEGACY_BACKUP_KEY) === null) storage.setItem(LEGACY_BACKUP_KEY, raw);
+      const backupKey = saved.version === 1 ? LEGACY_BACKUP_KEY : `${STORAGE_KEY}:v2-backup`;
+      if (storage.getItem(backupKey) === null) storage.setItem(backupKey, raw);
       storage.setItem(STORAGE_KEY, upgraded);
-      return { state, raw: upgraded, notice: 'Saved data upgraded to v2. Inventory, reservations, plans and activity were preserved. A v1 backup is retained in this browser.' };
+      return { state, raw: upgraded, notice: `Saved data upgraded to v3. Plan numbers added; inventory and history preserved. A v${saved.version} backup is retained in this browser.` };
     }
     if (saved?.version !== DATA_VERSION) throw new Error('Unsupported data version.');
     return { state: validateState(saved.state), raw };

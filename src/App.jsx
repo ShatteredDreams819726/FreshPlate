@@ -82,7 +82,7 @@ export default function App() {
         <DataEntryPanel demo={demo} onViewPlan={() => setView('plan')} />
         </div>
         <div id="panel-plan" className="workspace-panel" hidden={view !== 'plan'}><TodaysPlan demo={demo} onViewLog={() => setView('activity')} /></div>
-        <div id="panel-activity" className="workspace-panel" hidden={view !== 'activity'}><ActivityLog activity={demo.state.activity} inventory={demo.state.inventory} onViewPlan={() => setView('plan')} /></div>
+        <div id="panel-activity" className="workspace-panel" hidden={view !== 'activity'}><ActivityLog activity={demo.state.activity} inventory={demo.state.inventory} planNumbering={demo.state.planNumbering} onViewPlan={() => setView('plan')} /></div>
         <StorageControls demo={demo} />
         <footer className="page-footer"><span><Leaf /> FreshPlate</span><p>{demo.state.mode === 'demo' ? 'Simulated data' : 'Business mode'} · Browser-local planning</p></footer>
       </main>

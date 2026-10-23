@@ -62,7 +62,7 @@ Stock previews automatically match only a unique exact name (ignoring case and o
 
 ### Ingredient images and presentation
 
-Icons belong to ingredient IDs, so all batches of one ingredient share its default or uploaded image. After saving a new ingredient, open **Ingredients → Upload Image**; **Replace Image** and **Use Default** change only its presentation. JPG/PNG files are limited to 2 MB and resized to at most 128 × 128 pixels; compressed data is capped at 40,000 characters. The optional `ingredientIcons` map is saved with the existing version-2 envelope. Earlier version-2 saves without this map remain readable, and historical plan snapshots are unchanged. Failed image processing or browser-storage writes leave the previous saved state intact and show an error. Cancelling the file picker changes nothing.
+Icons belong to ingredient IDs, so all batches of one ingredient share its default or uploaded image. After saving a new ingredient, open **Ingredients → Upload Image**; **Replace Image** and **Use Default** change only its presentation. JPG/PNG files are limited to 2 MB and resized to at most 128 × 128 pixels; compressed data is capped at 40,000 characters. The optional `ingredientIcons` map is saved with the version-3 envelope. Earlier version-2 saves, including those without this map, are upgraded without changing images or historical plan snapshots. Failed image processing or browser-storage writes leave the previous saved state intact and show an error. Cancelling the file picker changes nothing.
 
 Production dates remain optional. The inventory and arrival log show **Production date: YYYY-MM-DD** only when a valid date was supplied. Missing dates are hidden; invalid preview dates must be corrected. Expiry and priority rules are unchanged.
 
@@ -100,7 +100,7 @@ See [AI Import Setup](ai-import.md) for the server-side key/model variables, ful
 
 ## Persistence and migration
 
-The `freshplate-demo` envelope is now version 2, including ingredient/recipe catalogs, imports, mode, inventory, plans and activity. Restore replays confirmed data changes and saved plan operations, without recalculating old plans.
+The `freshplate-demo` envelope is now version 3, including ingredient/recipe catalogs, imports, mode, inventory, plans, activity and separate plan display-number metadata. Restore replays confirmed data changes and saved plan operations, without recalculating old plans. Version-2 data gains stable date/sequence labels and retains an original backup under `freshplate-demo:v2-backup`; IDs, snapshots, stock and history remain unchanged. See [Plan numbering and storage](demo-guide.md#state-transitions-and-browser-storage).
 
 Version-1 data is first validated with its original schema. Migration adds stable references and catalogs while retaining stock, reservations, IDs, timestamps, saved snapshots and history. The original JSON is retained under `freshplate-demo:v1-backup` before the upgraded main value is saved. The UI reports the upgrade. Validation or storage failure blocks loading with an explanation; it does not fall back to initial inventory. Reset is an explicit destructive action requiring confirmation.
 

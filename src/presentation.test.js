@@ -7,6 +7,7 @@ import { createInitialState, transition, currentPlan } from './workflow.js';
 import { createStockPreview, updateStockPreviewRow } from './dataEntry.js';
 import { DATA_VERSION } from './persistence.js';
 import { prepareIngredientImage } from './ingredientImages.js';
+import { planLabel } from './planNumbers.js';
 
 test('rendered inventory and plan history use ingredient icons, business batch numbers and optional production dates', async () => {
   const server = await createServer({ envDir: false, server: { middlewareMode: true, hmr: false }, appType: 'custom' });
@@ -98,7 +99,7 @@ test('plan cards show concise snapshot reasons, collapsed allocations and remain
     assert.match(html, /<p class="dish-limit">Prep limit reached\.<\/p>/);
     assert.equal((html.match(/<details><summary>View batch allocation<\/summary>/g) ?? []).length, 5);
     assert.doesNotMatch(html, /<details[^>]*\bopen\b/);
-    assert.match(html, /<h3>Remaining priority stock<\/h3>/);
+    assert.match(html, /<details class="detail-panel remaining-priority"><summary>Remaining priority stock \(3 batches\)<\/summary>/);
     assert.match(html, /<th scope="col">Reason<\/th>/);
     assert.match(html, /<summary>Recipes<\/summary>/);
     assert.match(html, /<summary>Excluded batches/);
@@ -126,5 +127,47 @@ test('plan cards show concise snapshot reasons, collapsed allocations and remain
     assert.match(html, /Increase a cap or check priority stock/);
     assert.match(html, /Dishes not planned/);
     assert.match(html, /disabled="">Approve Plan/);
+  } finally { await server.close(); }
+});
+
+test('saved plans omit repeated recipes; each log keeps both complete details collapsed and shares the persisted plan label', async () => {
+  const server = await createServer({ envDir: false, server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { default: ActivityLog } = await server.ssrLoadModule('/src/ActivityLog.jsx');
+    const { default: PlanActions } = await server.ssrLoadModule('/src/PlanActions.jsx');
+    const { default: TodaysPlan } = await server.ssrLoadModule('/src/TodaysPlan.jsx');
+    let state = createInitialState();
+    for (const id of ['FP-display-one', 'FP-display-two']) {
+      for (const type of ['GENERATE', 'APPROVE', 'COMPLETE']) state = transition(state, { type, planId: id, time: '2026-10-23T04:00:00.000Z' });
+    }
+    const before = structuredClone(state), first = state.plans[0], number = planLabel(state.planNumbering, first.id);
+    let html = renderToStaticMarkup(React.createElement(ActivityLog, { activity: state.activity, inventory: state.inventory, planNumbering: state.planNumbering }));
+    assert.equal((html.match(/<details class="detail-panel"><summary>Recorded consumption<\/summary>/g) ?? []).length, 2);
+    assert.equal((html.match(/<summary>Dish portions &amp; batch changes<\/summary>/g) ?? []).length, 4);
+    assert.doesNotMatch(html, /<details[^>]*\bopen\b/);
+    assert.equal((html.match(new RegExp(`<p class="plan-id">${number}<`, 'g')) ?? []).length, 3);
+    assert.doesNotMatch(html, />FP-display-/);
+    for (const completed of state.activity.filter(event => event.action === 'Completed')) {
+      const portions = completed.dishes.reduce((sum, dish) => sum + dish.portions, 0);
+      assert.ok(html.includes(`${portions} servings prepared`));
+      for (const dish of completed.dishes) assert.ok(html.includes(`${dish.portions} servings`));
+      for (const change of completed.changes) assert.ok(html.includes(change.ingredient));
+    }
+    state = transition(state, { type: 'SELECT_PLAN', planId: first.id });
+    html = renderToStaticMarkup(React.createElement(PlanActions, { state, run() {}, blocked: false }));
+    assert.match(html, /<summary>Saved plans<\/summary>/);
+    assert.doesNotMatch(html, /recipe snapshot|per serving|<ul>/);
+    assert.ok(html.includes(`<span class="plan-id">${number}</span>`));
+    assert.ok(html.includes(`value="${first.id}" selected="">${number} · Completed`));
+    state.recipes[0].name = 'Edited current recipe';
+    state.recipes[0].ingredients[0].quantity = 999;
+    html = renderToStaticMarkup(React.createElement(TodaysPlan, { demo: { state, run() {}, blocked: false } }));
+    assert.match(html, /Ingredients per serving · saved plan snapshot/);
+    const recipeDetails = html.slice(html.indexOf('<summary>Recipes</summary>'));
+    assert.ok(recipeDetails.includes(renderToStaticMarkup(React.createElement('strong', null, first.snapshot.recipes[0].name))));
+    assert.doesNotMatch(recipeDetails, /Edited current recipe|999 kg/);
+    assert.deepEqual(state.plans, before.plans);
+    assert.deepEqual(state.activity, before.activity);
+    assert.deepEqual(state.inventory, before.inventory);
   } finally { await server.close(); }
 });

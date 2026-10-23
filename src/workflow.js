@@ -4,6 +4,7 @@ import { generatePlan } from './planner.js';
 import { ingredients as initialIngredients } from './demoInputs.js';
 import { commitDataChange, todayLocal } from './dataEntry.js';
 import { validIcon } from './ingredientPresentation.js';
+import { emptyPlanNumbering, assignPlanNumber } from './planNumbers.js';
 
 const copy = value => structuredClone(value);
 function requireCondition(condition, message) { if (!condition) throw new Error(message); }
@@ -12,7 +13,7 @@ const timestamp = value => typeof value === 'string' && Number.isFinite(Date.par
 
 export function createInitialState() {
   return { ingredients: copy(initialIngredients), recipes: copy(recipes), mode: 'demo', recipeRevision: 0, imports: [], inventory: initialInventory.map(({ reserved, ...batch }) => ({ ...batch, orderReserved: reserved, planReservations: {} })),
-    caps: { ...defaultCaps }, capsRevision: 0, inventoryRevision: 0, plans: [], currentPlanId: null, activity: [] };
+    caps: { ...defaultCaps }, capsRevision: 0, inventoryRevision: 0, plans: [], planNumbering: emptyPlanNumbering(), currentPlanId: null, activity: [] };
 }
 
 export function planReserved(batch) {
@@ -133,6 +134,7 @@ export function transition(state, action) {
     const plan = { id: action.planId, status: 'Draft', createdAt: action.time,
       snapshot: { ingredients: copy(next.ingredients), recipes: copy(next.recipes), mode: next.mode, recipeRevision: next.recipeRevision, result, inventoryRevision: next.inventoryRevision, capsRevision: next.capsRevision } };
     next.plans.push(plan);
+    assignPlanNumber(next, plan);
     next.currentPlanId = plan.id;
     next.activity.push(logEntry(plan, 'Draft', action.time));
     return next;

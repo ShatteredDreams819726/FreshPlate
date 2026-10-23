@@ -69,6 +69,12 @@ The stew stops after its priority chicken is allocated; later chicken alone does
 
 Every plan has a unique ID and saved recipe, portion and batch-allocation snapshots. Later actions use those snapshots rather than recalculating a different plan.
 
+The visible number is separate from that internal UUID: **2026-10-23 · Plan 01**. Numbering uses actual creation time in the explicitly configured shop timezone, **Asia/Kuala_Lumpur**, independently of the fixed Demo planning date. A persisted per-date counter increases for every newly generated plan, starts at 01 on a new shop date and grows beyond 99 without truncation. Approval, completion, cancellation, refresh and sorting retain the same number. These numbers identify plans within this browser's data; they are not globally unique across devices.
+
+Storage version 3 adds a `planNumbering` mapping from internal IDs to display numbers, plus daily and legacy counters. Version 1 and 2 saves are upgraded with their original data backed up under `freshplate-demo:v1-backup` or `freshplate-demo:v2-backup`. Missing numbers are assigned in creation-time order, with internal-ID tie breaking; existing numbers are retained. A valid original `createdAt`, or a unique valid Draft event time if it is missing, is creation evidence. Records with neither receive stable **Legacy Plan 01** numbers; completion time and the Demo date are never substituted. Missing old Draft times display **Time unavailable**; inventory, snapshots, original timestamps and activity records are not rewritten. Other saved transitions must still pass the inventory/history checks. A failed migration or write leaves the primary save intact and reports an error.
+
+**Saved plans** only selects a historical result and status; it no longer repeats every recipe at the top. The bottom **Recipes** disclosure shows that selected plan's saved per-serving recipes, rather than today's edited catalog. Each Completed Activity Log entry shows status, plan number, actual operation time and a short serving/dish summary. **Recorded consumption** and **Dish portions & batch changes** are independent native disclosures, collapsed after a refresh and operable with the keyboard. All recorded quantities remain available inside them.
+
 | State | Inventory effect and next action |
 | --- | --- |
 | Draft | No stock or reservation changes. Review and approve; empty or stale drafts cannot be approved. |
@@ -107,6 +113,7 @@ The automated suite covers:
 - `src/planner.test.js`: shared ingredients, reservations, date boundaries, expired/invalid batches, zero/invalid caps, determinism and non-mutation.
 - `src/workflow.test.js`: approval, completion, cancellation, repeated-action guards, stale drafts, active-plan generation blocking, atomic failures and save/restore consistency.
 - `src/planSummary.test.js`: deduplicated batch counts, recorded-versus-planned summaries, allocation-based concise reasons, complete limiting factors and differentiated remaining-stock reasons without snapshot mutation.
+- `src/planNumbers.test.js`: shop-date boundaries, persisted daily counters, numbers beyond 99, stable lifecycle labels, v2 backfill, legacy creation evidence, save-failure protection and invalid-number detection.
 - `demo/demo.test.js`: full CLI/web snapshot parity for both scenarios, input isolation, reporting and the dependency-free seven-file upload.
 - `src/dataEntry.test.js`: manual import, explicit units, duplicate confirmation, custom catalogs, planning dates and safe version-1 migration. See [Stock & Recipe Entry](data-entry.md) for the current workflow and persistence schema.
 - `src/extraction.test.js`: mocked Gemini responses, schema/semantic validation, safe diagnostics, API failures, limits and the shared local HTTP endpoint.
@@ -166,4 +173,4 @@ For repeatable starting data, open **Demo settings → Reset Demo** and confirm 
 4. **1:05–1:30 — Complete.** Return to Today's Plan and click **Complete Preparation**. Show prepared portions and **Recorded consumption**, including the quantities actually deducted by batch.
 5. **1:30–2:00 — Track consumption.** Click **View Activity Log** and expand `Dish portions & batch changes` on the Completed record. Show actual operation time, stock changes and preserved original-order reservations.
 
-For follow-up questions, demonstrate that an active Approved plan blocks new generation, a cap change makes a Draft require regeneration, and cancellation releases reservations without consuming stock. Saved plans and recipe snapshots are available under the plan's history disclosure.
+For follow-up questions, demonstrate that an active Approved plan blocks new generation, a cap change makes a Draft require regeneration, and cancellation releases reservations without consuming stock. Select historical plans under **Saved plans**; their saved per-serving recipes are under **Recipes** at the bottom.

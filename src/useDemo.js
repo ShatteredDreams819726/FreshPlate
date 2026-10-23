@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createInitialState, transition } from './workflow.js';
 import { loadDemo, saveDemo, STORAGE_KEY } from './persistence.js';
 import { todayLocal } from './dataEntry.js';
+import { planLabel } from './planNumbers.js';
 
 function readBrowser() {
   if (typeof window === 'undefined') return { state: createInitialState(), raw: null, error: '' };
@@ -40,14 +41,17 @@ export function useDemo() {
       savedRef.current = update;
       setSaved(update);
       setError('');
-      setMessage({ GENERATE: 'Draft ready. Next: review the portions and approve the plan.',
+      const planOperation = ['GENERATE', 'APPROVE', 'COMPLETE', 'CANCEL'].includes(action.type);
+      const number = planOperation ? planLabel(next.planNumbering, actualAction.planId) : '';
+      const message = { GENERATE: 'Draft ready. Next: review the portions and approve the plan.',
         APPROVE: 'Ingredients reserved. Next: complete preparation when the food is ready.',
         COMPLETE: 'Preparation recorded. Next: view Activity Log for consumed batches.',
         CANCEL: 'Plan cancelled; reservations released. Next: generate a new plan.',
         IMPORT_STOCK: 'Delivery confirmed. New batches were appended; existing orders are unchanged. Business mode now uses today’s date.',
         SAVE_RECIPE: 'Recipe saved per serving. Set its prep cap and generate a new plan.',
         SET_INGREDIENT_ICON: 'Ingredient image saved for all its batches. Stock quantities are unchanged.',
-        SET_MODE: 'Planning mode changed. Generate a fresh plan for the displayed date.' }[action.type] ?? '');
+        SET_MODE: 'Planning mode changed. Generate a fresh plan for the displayed date.' }[action.type] ?? '';
+      setMessage(number ? `${number} — ${message}` : message);
       return true;
     } catch (failure) {
       setError(`Operation not applied. ${failure.message}`);

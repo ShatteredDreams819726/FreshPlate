@@ -1,6 +1,7 @@
 import { createInitialState, transition, totalReserved } from './workflow.js';
 import { getBatchIssues, getDaysUntil, isValidDate, toBaseUnits, DEMO_DATE } from './inventory.js';
 import { validIcon } from './ingredientPresentation.js';
+import { creationTime, validatePlanNumbering } from './planNumbers.js';
 
 const check = (condition, message) => { if (!condition) throw new Error(message); };
 const stable = value => Array.isArray(value) ? value.map(stable) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])])) : value;
@@ -35,7 +36,7 @@ function validateRecipes(book, catalog) {
 }
 
 function validateSnapshot(plan, state) {
-  check(id(plan.id) && ['Draft', 'Approved', 'Completed', 'Cancelled'].includes(plan.status) && validTime(plan.createdAt), 'Invalid saved plan identity, status or time.');
+  check(id(plan.id) && ['Draft', 'Approved', 'Completed', 'Cancelled'].includes(plan.status) && (plan.createdAt == null || typeof plan.createdAt === 'string'), 'Invalid saved plan identity, status or time.');
   const snap = plan.snapshot, result = snap?.result;
   check(snap && whole(snap.inventoryRevision) && snap.inventoryRevision <= state.inventoryRevision && whole(snap.capsRevision) && snap.capsRevision <= state.capsRevision && whole(snap.recipeRevision) && snap.recipeRevision <= state.recipeRevision, 'Invalid snapshot revision.');
   check(['demo', 'business'].includes(snap.mode) && result && isValidDate(result.demoDate) && (snap.mode !== 'demo' || result.demoDate === DEMO_DATE), 'Invalid snapshot planning date.');
@@ -87,12 +88,14 @@ export function validateState(state) {
   }
   check(state.caps && Object.keys(state.caps).length === state.recipes.length && state.recipes.every(recipe => typeof state.caps[recipe.id] === 'string'), 'Invalid owner caps.');
   check(new Set(state.plans.map(plan => plan.id)).size === state.plans.length, 'Duplicate saved plan ID.');
+  validatePlanNumbering(state);
   for (const plan of state.plans) validateSnapshot(plan, state);
   check((!state.plans.length && state.currentPlanId === null) || state.plans.some(plan => plan.id === state.currentPlanId), 'Current plan is missing.');
   let replay = createInitialState();
   const eventIds = new Set();
   for (const event of state.activity) {
-    check(event && validTime(event.time) && !eventIds.has(event.id), 'Invalid or duplicate activity record.');
+    const legacyDraft = event?.action === 'Draft' && state.plans.some(plan => plan.id === event.planId && !creationTime(plan, state.activity)) && (event.time == null || event.time === '');
+    check(event && (validTime(event.time) || legacyDraft) && !eventIds.has(event.id), 'Invalid or duplicate activity record.');
     eventIds.add(event.id);
     if (['StockImported', 'RecipeSaved', 'ModeChanged'].includes(event.action)) {
       check(event.request && event.request.time === event.time, 'Missing data confirmation request.');
@@ -104,7 +107,8 @@ export function validateState(state) {
     const plan = state.plans.find(item => item.id === event.planId);
     check(plan && event.id === `${plan.id}:${event.action}`, 'Invalid plan activity.');
     if (event.action === 'Draft') {
-      check(!replay.plans.some(item => item.id === plan.id) && event.time === plan.createdAt && plan.snapshot.inventoryRevision === replay.inventoryRevision && plan.snapshot.recipeRevision === replay.recipeRevision && plan.snapshot.mode === replay.mode && same(plan.snapshot.ingredients, replay.ingredients) && same(plan.snapshot.recipes, replay.recipes), 'Invalid draft history or recipe snapshot.');
+      const created = creationTime(plan, state.activity);
+      check(!replay.plans.some(item => item.id === plan.id) && (created ? event.time === created : legacyDraft) && plan.snapshot.inventoryRevision === replay.inventoryRevision && plan.snapshot.recipeRevision === replay.recipeRevision && plan.snapshot.mode === replay.mode && same(plan.snapshot.ingredients, replay.ingredients) && same(plan.snapshot.recipes, replay.recipes), 'Invalid draft history or recipe snapshot.');
       check(plan.snapshot.result.projections.length === replay.inventory.length, 'Draft source has missing or extra batches.');
       for (const batch of plan.snapshot.result.projections) {
         const source = replay.inventory.find(item => item.batch === batch.batch);
