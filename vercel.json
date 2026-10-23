@@ -1,0 +1,8 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/extract.js": { "maxDuration": 60 }
+  }
+}

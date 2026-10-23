@@ -10,3 +10,14 @@ dist/
 *.pfx
 npm-debug.log*
 .DS_Store
+
+.vercel/
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+coverage/

@@ -1,13 +1,6 @@
 // All quantities and dates are fictional. Units are consistent within each batch.
-import { DEMO_DATE } from './demoInputs.js';
+import { DEMO_DATE, ingredients } from './demoInputs.js';
 export { DEMO_DATE, inventory } from './demoInputs.js';
-
-export const INGREDIENT_UNITS = {
-  Tomatoes: 'kg', Eggs: 'pcs', 'Green peppers': 'kg', Chicken: 'kg',
-  Potatoes: 'kg', 'Chinese cabbage': 'kg', 'Cooked rice': 'kg', Carrots: 'kg',
-};
-
-
 
 export function isValidDate(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -24,11 +17,12 @@ export function fromBaseUnits(value, unit) {
   return value / (unit === 'kg' ? 1000 : 1);
 }
 
-export function getBatchIssues(item) {
+export function getBatchIssues(item, catalog = ingredients) {
   const issues = [];
+  const definition = catalog.find(entry => entry.id === item.ingredientId);
   if (!item.batch || typeof item.batch !== 'string') issues.push('Missing batch ID.');
-  if (!Object.hasOwn(INGREDIENT_UNITS, item.ingredient)) issues.push('Unknown ingredient.');
-  if (!Object.hasOwn(INGREDIENT_UNITS, item.ingredient) || item.unit !== INGREDIENT_UNITS[item.ingredient]) {
+  if (!definition) issues.push('Unknown ingredient ID.');
+  if (!definition || item.unit !== definition.unit) {
     issues.push('Unit does not match the ingredient; expected kg for mass or pcs for eggs.');
   }
   if (!isValidDate(item.deadline)) issues.push('Invalid use-by date; expected a real YYYY-MM-DD date.');
@@ -55,17 +49,17 @@ export function getDaysUntil(deadline, referenceDate = DEMO_DATE) {
   return Math.round((Date.parse(`${deadline}T00:00:00Z`) - Date.parse(`${referenceDate}T00:00:00Z`)) / 86400000);
 }
 
-export function getPriority(deadline) {
-  const days = getDaysUntil(deadline);
+export function getPriority(deadline, referenceDate = DEMO_DATE) {
+  const days = getDaysUntil(deadline, referenceDate);
   if (!Number.isFinite(days)) return { key: 'invalid', label: 'Invalid date', detail: 'Excluded from plans' };
-  if (days < 0) return { key: 'past', label: 'Past demo date', detail: `${Math.abs(days)} day${days === -1 ? '' : 's'} ago` };
+  if (days < 0) return { key: 'past', label: 'Past use-by date', detail: `${Math.abs(days)} day${days === -1 ? '' : 's'} ago` };
   if (days === 0) return { key: 'today', label: 'Due today', detail: 'Today' };
   if (days <= 2) return { key: 'soon', label: 'Due soon', detail: `In ${days} day${days === 1 ? '' : 's'}` };
   return { key: 'later', label: 'Later', detail: `In ${days} days` };
 }
 
-export function getAvailable(item) {
-  if (getBatchIssues(item).length) return null;
+export function getAvailable(item, catalog = ingredients) {
+  if (getBatchIssues(item, catalog).length) return null;
   return fromBaseUnits(toBaseUnits(item.stock, item.unit) - toBaseUnits(item.reserved, item.unit), item.unit);
 }
 

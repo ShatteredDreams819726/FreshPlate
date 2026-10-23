@@ -1,11 +1,12 @@
 import test from 'node:test';
+import { ingredients } from './demoInputs.js';
 import assert from 'node:assert/strict';
 import { inventory, getAvailable, getPriority, getDaysUntil } from './inventory.js';
 import { recipes, defaultCaps, validateCaps } from './recipes.js';
 import { generatePlan } from './planner.js';
 
 const capsFor = overrides => ({ ...Object.fromEntries(recipes.map(recipe => [recipe.id, 0])), ...overrides });
-const row = (ingredient, batch, stock, reserved = 0, deadline = '2026-10-21') => ({ ingredient, batch, stock, reserved, deadline, unit: ingredient === 'Eggs' ? 'pcs' : 'kg' });
+const row = (ingredient, batch, stock, reserved = 0, deadline = '2026-10-21') => ({ ingredientId: ingredients.find(item => item.name === ingredient)?.id, ingredient, batch, stock, reserved, deadline, unit: ingredient === 'Eggs' ? 'pcs' : 'kg' });
 const dish = (plan, id) => plan.dishes.find(item => item.id === id);
 
 test('shared eggs and chicken use one budget across dishes, with reservations protected', () => {

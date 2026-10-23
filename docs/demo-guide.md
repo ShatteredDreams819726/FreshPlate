@@ -90,14 +90,20 @@ npm.cmd run preview
 npm.cmd run dev -- --port 5174
 ```
 
-The current automated suite contains 21 passing checks across:
+For Gemini import, use `npm.cmd run dev:full` instead. It serves the frontend and the same `/api/extract` handler used by Vercel; `dev` and `preview` serve only frontend assets. Use `npm.cmd run dev:full -- --port 5174` if needed, remembering that browser storage is separate per origin. See [AI Import Setup](ai-import.md).
+
+The automated suite covers:
 
 - `src/planner.test.js`: shared ingredients, reservations, date boundaries, expired/invalid batches, zero/invalid caps, determinism and non-mutation.
 - `src/workflow.test.js`: approval, completion, cancellation, repeated-action guards, stale drafts, active-plan generation blocking, atomic failures and save/restore consistency.
 - `src/planSummary.test.js`: deduplicated batch counts and recorded-versus-planned summaries.
 - `demo/demo.test.js`: full CLI/web snapshot parity for both scenarios, input isolation, reporting and the dependency-free seven-file upload.
+- `src/dataEntry.test.js`: manual import, explicit units, duplicate confirmation, custom catalogs, planning dates and safe version-1 migration. See [Stock & Recipe Entry](data-entry.md) for the current workflow and persistence schema.
+- `src/extraction.test.js`: mocked Gemini responses, schema/semantic validation, safe diagnostics, API failures, limits and the shared local HTTP endpoint.
+- `src/importReview.test.js`: actionable review issues, date normalization, leap years, timezone independence, calculation confirmation and non-mutating previews.
+- `src/presentation.test.js`: rendered labels, ingredient icons, batch presentation, native date inputs and duplicate-alert visibility; image-processing checks use controlled fixtures.
 
-Browser automation was unavailable during the recent layout updates. Before presenting, manually check 1440px, 1280px and 390px widths at 100% zoom: navigation and buttons wrap, tables scroll inside their regions, expanded details remain readable, and the page has no unexpected horizontal overflow. Test the reset dialog's Cancel, Esc and confirmation actions. Also verify refresh recovery of an Approved plan, completion, cancellation, stale drafts and empty-plan guidance.
+The owner has reported manual acceptance of the current functionality; the coding agent did not perform browser automation. After a new deployment, recheck desktop/narrow-screen layouts and the full workflow, including refresh recovery of an Approved plan. Manual acceptance and automated test coverage are separate forms of validation.
 
 ## Replit: complete reproduction steps
 

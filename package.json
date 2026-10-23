@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "vite build",
-    "test": "node --test src/planner.test.js src/workflow.test.js src/planSummary.test.js demo/demo.test.js",
+    "test": "node --test src/planner.test.js src/workflow.test.js src/planSummary.test.js src/dataEntry.test.js src/presentation.test.js demo/demo.test.js src/extraction.test.js src/importReview.test.js",
     "demo": "node demo/run.js",
-    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort"
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "dev:full": "node --env-file-if-exists=.env.local dev/server.js"
   },
   "dependencies": {
     "react": "19.3.1",

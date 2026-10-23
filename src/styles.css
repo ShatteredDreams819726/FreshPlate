@@ -302,3 +302,57 @@ summary { font-size: var(--font-body); color: #3c5c31; font-weight: 650; cursor:
 @media (max-width: 360px) {
   .caps-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Editable import previews use the same readable controls as the main workspace. */
+.entry-panel { margin-top: var(--space-5); }
+.entry-panel label, .date-card label { display: block; font-size: var(--font-label); font-weight: 600; margin-top: var(--space-3); }
+.entry-panel input, .entry-panel select, .date-card select { display: block; width: 100%; margin-top: var(--space-1); }
+.date-card label { width: 100%; }
+.entry-panel textarea { display: block; width: 100%; max-width: 100%; min-height: 9rem; padding: var(--space-3); margin-block: var(--space-2) var(--space-3); border: 1px solid #9eaf90; border-radius: .5rem; background: var(--surface); color: var(--ink); font: var(--font-table)/1.6 Consolas, monospace; resize: vertical; }
+.entry-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--space-4); }
+.recipe-entry-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: var(--space-3); align-items: end; margin-block: var(--space-4); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius); }
+.recipe-entry-row > * { min-width: 0; }
+.entry-help { display: block; color: var(--muted); font-size: var(--font-small); margin-top: var(--space-2); font-weight: 400; }
+.import-preview { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+.import-preview h3 { margin-bottom: var(--space-3); }
+.import-preview > button { margin-top: var(--space-4); }
+.entry-table { min-width: 1750px; }
+.entry-table td { vertical-align: top; min-width: 12rem; }
+.entry-table td:first-child { min-width: 22rem; }
+.entry-table td:last-child { min-width: 18rem; }
+.entry-validation { margin-block: var(--space-3); }
+.entry-validation p { margin-block: var(--space-2); }
+.entry-row-invalid { background: #fff3e9; }
+.entry-row-invalid > td:first-child { border-left: 4px solid #9c4b2e; }
+.entry-panel .checkbox-label { display: flex; align-items: flex-start; gap: var(--space-2); white-space: normal; font-weight: 400; }
+.entry-panel input[type=checkbox] { width: 1.5rem; height: 1.5rem; min-height: 1.5rem; flex-shrink: 0; margin-top: .25rem; }
+.activity-event li p { overflow-wrap: anywhere; }
+.ingredient-art img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.ingredient-catalog { list-style: none; padding: 0; }
+.ingredient-catalog > li { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; align-items: center; padding-block: var(--space-3); border-bottom: 1px solid var(--border); }
+.ingredient-catalog .ingredient { min-width: 0; flex: 1 1 16rem; }
+.ingredient-catalog strong { overflow-wrap: anywhere; }
+.ingredient-image-control { display: flex; flex-wrap: wrap; gap: var(--space-2); min-width: 0; max-width: 100%; }
+.ingredient-image-control p { flex-basis: 100%; }
+.ingredient-match { min-width: 0; }
+.ingredient-match select { min-width: 0; max-width: 100%; }
+.detail-panel code, .batch, .ingredient-detail, .entry-help { overflow-wrap: anywhere; white-space: normal; }
+.batch { min-width: 12rem; max-width: 20rem; }
+.ingredient-art { flex-shrink: 0; overflow: hidden; }
+.ai-import { background: var(--soft); padding: var(--space-3); border-radius: var(--radius); }
+.ai-import .workflow-buttons { margin-block: var(--space-3); }
+.extraction-source { margin: var(--space-3) 0; max-width: 100%; }
+.extraction-source img { display: block; max-width: 100%; max-height: 32rem; object-fit: contain; }
+.extraction-source figcaption { overflow-wrap: anywhere; font-size: var(--font-small); }
+.extracted-table { min-width: 60rem; }
+.extracted-table td { max-width: 16rem; white-space: normal; overflow-wrap: anywhere; }
+.extraction-review { margin-top: var(--space-4); }
+.extraction-review > button { margin-block: var(--space-3); }
+.import-date-field { min-width: 0; width: 100%; }
+.import-date-field label:first-child { margin-top: 0; }
+.import-date-field input[type=date] { min-width: 0; width: 100%; max-width: 100%; min-height: var(--control-height); padding: var(--space-2); color: var(--ink); background: var(--surface); border: 1px solid #9eaf90; border-radius: .5rem; }
+.import-date-field input[type=date]::-webkit-calendar-picker-indicator { cursor: pointer; padding: .25rem; }
+.import-date-field .date-clear { margin-top: var(--space-2); font-size: var(--font-small); padding: .5rem .75rem; }
+.import-preview > .secondary-button { margin-inline-start: var(--space-2); }
+@media (max-width: 900px) { .recipe-entry-row { grid-template-columns: repeat(2,minmax(0,1fr)); }.recipe-entry-row > .ingredient-match { grid-column: 1 / -1; } }
+@media (max-width: 600px) { .entry-fields, .recipe-entry-row { grid-template-columns: minmax(0,1fr); }.entry-panel .workflow-buttons { margin-block: var(--space-3); }.entry-table input, .entry-table select { font-size: var(--font-body); } }

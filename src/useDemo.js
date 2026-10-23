@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createInitialState, transition } from './workflow.js';
 import { loadDemo, saveDemo, STORAGE_KEY } from './persistence.js';
+import { todayLocal } from './dataEntry.js';
 
 function readBrowser() {
   if (typeof window === 'undefined') return { state: createInitialState(), raw: null, error: '' };
@@ -11,7 +12,8 @@ function readBrowser() {
 export function useDemo() {
   const [saved, setSaved] = useState(readBrowser);
   const savedRef = useRef(saved);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(saved.notice ?? '');
+  const [, setToday] = useState(todayLocal);
   const [error, setError] = useState(saved.error);
   const [conflict, setConflict] = useState(false);
 
@@ -23,13 +25,14 @@ export function useDemo() {
       }
     }
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    const timer = window.setInterval(() => setToday(todayLocal()), 60000);
+    return () => { window.removeEventListener('storage', onStorage); window.clearInterval(timer); };
   }, []);
 
   function run(action) {
-    if (!savedRef.current.state || conflict) return;
+    if (!savedRef.current.state || conflict) return false;
     try {
-      const actualAction = { ...action, time: new Date().toISOString() };
+      const actualAction = { ...action, time: new Date().toISOString(), today: todayLocal() };
       if (action.type === 'GENERATE') actualAction.planId = `FP-${crypto.randomUUID()}`;
       const next = transition(savedRef.current.state, actualAction);
       const raw = saveDemo(window.localStorage, next, savedRef.current.raw);
@@ -40,11 +43,17 @@ export function useDemo() {
       setMessage({ GENERATE: 'Draft ready. Next: review the portions and approve the plan.',
         APPROVE: 'Ingredients reserved. Next: complete preparation when the food is ready.',
         COMPLETE: 'Preparation recorded. Next: view Activity Log for consumed batches.',
-        CANCEL: 'Plan cancelled; reservations released. Next: generate a new plan.' }[action.type] ?? '');
+        CANCEL: 'Plan cancelled; reservations released. Next: generate a new plan.',
+        IMPORT_STOCK: 'Delivery confirmed. New batches were appended; existing orders are unchanged. Business mode now uses today’s date.',
+        SAVE_RECIPE: 'Recipe saved per serving. Set its prep cap and generate a new plan.',
+        SET_INGREDIENT_ICON: 'Ingredient image saved for all its batches. Stock quantities are unchanged.',
+        SET_MODE: 'Planning mode changed. Generate a fresh plan for the displayed date.' }[action.type] ?? '');
+      return true;
     } catch (failure) {
       setError(`Operation not applied. ${failure.message}`);
       if (failure.message.startsWith('Another tab changed')) setConflict(true);
       setMessage('');
+      return false;
     }
   }
 
@@ -53,7 +62,7 @@ export function useDemo() {
     savedRef.current = update;
     setSaved(update);
     setError(update.error);
-    setMessage(update.error ? '' : "Saved demo restored. Continue in Today's Plan.");
+    setMessage(update.error ? '' : update.notice ?? "Saved demo restored. Continue in Today's Plan.");
     setConflict(false);
   }
 
