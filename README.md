@@ -19,7 +19,6 @@ Turn soon-to-expire stock into actionable prep plans for small Chinese restauran
 | Resource | Link |
 | --- | --- |
 | GitHub Repository | [FreshPlate](https://github.com/ShatteredDreams819726/FreshPlate) |
-| Replit Project | [FreshPlate Planner Demo](https://replit.com/@KarenAijo/FreshPlate-Planner-Demo) |
 | Live Demo | [Try FreshPlate](https://fresh-plate-psi.vercel.app) |
 | Slide Deck | [View slides](https://canva.link/8moo9czxbcgl2w0) |
 | Demo Video | [Watch the demo](https://youtu.be/Q4n5Z2FIH6s) |
@@ -122,7 +121,7 @@ npm.cmd run build
 
 ## How We Use Replit
 
-[Replit](https://replit.com/@KarenAijo/FreshPlate-Planner-Demo) ran the **same core planning module** used by the webpage. The fixed synthetic scenarios produce **61 servings** with default caps and **45 servings** when Tomato & Egg Stir-fry has a zero cap.
+Replit ran the **same core planning module** used by the webpage. The fixed synthetic scenarios produce **61 servings** with default caps and **45 servings** when Tomato & Egg Stir-fry has a zero cap.
 
 ```sh
 node demo/run.js compare
