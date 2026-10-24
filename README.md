@@ -1,49 +1,164 @@
 # FreshPlate
 
-Turn soon-to-expire ingredients into actionable prep plans for small Chinese restaurants.
+Turn soon-to-expire stock into actionable prep plans for small Chinese restaurants.
 
-Live Demo: [FreshPlate](https://fresh-plate-psi.vercel.app)
+## Team Information
 
-## The problem
+| Field | Details |
+| --- | --- |
+| Team Name | Starlight |
+| Team Domain | Domain 2 — ALPHA RED |
+| SDG Track | SDG 12 — Responsible Consumption and Production |
+| Focus | Target 12.3 |
+| Team Leader | WANG HAOTONG · [@ShatteredDreams819726](https://github.com/ShatteredDreams819726) |
+| University | Xiamen University Malaysia |
+| Number of Members | 1 |
 
-A small restaurant may have ingredients approaching their use-by dates while part of its stock is already reserved for orders. Extra preparation needs to account for individual batches, shared ingredients and practical serving limits. FreshPlate turns this information into a plan the owner can approve, staff can complete, and the restaurant can track through recorded batch consumption.
+## Links
 
-## How it works
+| Resource | Link |
+| --- | --- |
+| GitHub Repository | [FreshPlate](https://github.com/ShatteredDreams819726/FreshPlate) |
+| Replit Project | [FreshPlate Planner Demo](https://replit.com/@KarenAijo/FreshPlate-Planner-Demo) |
+| Live Demo | [Try FreshPlate](https://fresh-plate-psi.vercel.app) |
+| Slide Deck | [View slides](https://canva.link/8moo9czxbcgl2w0) |
+| Demo Video | [Watch the demo](https://youtu.be/o4RcHGZAxS8) |
+| Preliminary Submission | [Project proposal](submission/SDC2026_Starlight_Preliminary.pdf) |
+| Technology Declaration | [Technical & Tools Declaration](submission/SDC2026_Starlight_TechDeclaration.pdf) |
+| Replit Proof of Use | [Replit evidence](submission/SDC2026_Starlight_Replit_POU.pdf) |
 
-**View inventory → Generate plan → Approve → Complete → Track consumption**
+## Overview
 
-Review stock and date priorities in **Inventory**, set extra serving caps in **Today's Plan**, and generate a draft. Approval reserves ingredients without deducting stock. Completion deducts the approved batch quantities and records consumption in **Activity Log**; cancellation releases only that plan's reservations. Complete or cancel an approved plan before starting another.
+### Problem
 
-## Key features
+Before service, a small restaurant must enter deliveries, check existing stock and decide which dishes to prepare. Earlier-expiring batches, ingredients shared between dishes and stock reserved for existing orders make this difficult to coordinate.
 
-- **Batch priority:** Allocates eligible batches expiring today through two days ahead, using earlier-expiring stock first.
-- **Shared inventory and custom recipes:** Add or edit recipes with an explicit yield, review per-serving quantities, and plan against one shared inventory budget using stable ingredient references.
-- **Protected reservations:** Keeps existing-order reservations separate from plan reservations and preserves approved recipe/allocation snapshots.
-- **Reviewed imports and human approval:** Import stock or recipes manually, or extract them from pasted text or one JPG/PNG using Gemini. Compare the source, correct fields and confirm separately; AI cannot save inventory or approve plans.
+### Solution
 
-## Run locally
+**View inventory → Generate plan → Approve → Complete → Track consumption.**
 
-Built with React, Vite, JavaScript and CSS, plus a Vercel Node.js extraction function. Use Node.js 24 and Windows PowerShell:
+FreshPlate connects reviewed stock and recipes to specific dishes and serving quantities. Gemini extracts information; deterministic code calculates inventory allocations and portions. The owner reviews the plan before preparation.
+
+### Key Features
+
+- **Editable AI extraction:** Turn text or a JPG/PNG into stock or recipe fields. Correct the preview, validate and confirm before saving. Add custom ingredients and per-serving recipes as the menu changes.
+- **One shared inventory budget:** Plan across dishes using recipe quantities, owner prep caps and earlier-expiring eligible batches, without allocating the same stock twice.
+- **Protected reservations:** Existing orders stay reserved. Approval adds plan reservations; completion deducts stock and releases that plan's reservations. Cancellation releases reservations without consumption.
+- **Traceable execution:** Saved plan snapshots and an Activity Log connect approved quantities to recorded batch consumption.
+
+### Tech Stack
+
+| Layer | Technology and role |
+| --- | --- |
+| Frontend | React 19, Vite 8, JavaScript and CSS |
+| Extraction endpoint | Vercel Node.js Function, `POST /api/extract` |
+| AI extraction | Gemini API for text/image structured extraction |
+| Planning | Shared JavaScript module used by the webpage and Node.js demo |
+| Persistence | Versioned browser localStorage for inventory, recipes, plans and activity; not a cloud database |
+| Hosting / validation | Vercel hosts the app/API; Replit runs core planning scenarios |
+
+## Project Structure
+
+```text
+.
+├── src/              # React UI, planner, imports, workflow, persistence and tests
+├── api/extract.js    # Vercel extraction entry point
+├── server/           # Gemini request handling and server validation
+├── dev/server.js     # Combined local frontend/API server
+├── demo/             # Shared-core CLI scenarios and checks
+├── submission/       # Three final submission PDFs linked above
+├── docs/             # Setup, workflow and demo documentation
+├── .env.example      # Empty server environment placeholders
+├── .gitignore
+├── index.html
+├── package.json
+├── package-lock.json
+├── vercel.json
+├── vite.config.js
+└── README.md
+```
+
+### Architecture
+
+```mermaid
+flowchart LR
+    A[React: text or image] --> B[Vercel extraction function]
+    B --> C[Gemini API]
+    C --> B
+    B --> D[Editable preview and validation]
+    D -->|Human confirmation| E[Browser localStorage]
+    E --> F[Shared inventory planner]
+    F --> G[Approve / Complete / Cancel]
+    G --> E
+```
+
+Planning runs in the browser. Confirmed records, recipe/allocation snapshots and activity stay in that browser. Demo mode uses a fixed planning date; Business mode uses today. Date priority does not assess food safety, and the planning heuristic does not forecast sales or guarantee a global optimum.
+
+## How to Run
+
+Use Node.js 24 and npm. From the project root in Windows PowerShell:
 
 ```powershell
-npm.cmd install
+npm.cmd ci
+if (-not (Test-Path -LiteralPath .env.local)) {
+    Copy-Item -LiteralPath .env.example -Destination .env.local
+}
+```
+
+Privately edit `.env.local` and fill the existing `GEMINI_API_KEY` and `GEMINI_MODEL` fields with your own key and an accessible model supporting image input and structured output. Keep an existing configured file. Never use a `VITE_` prefix for the key or commit it. Manual entry works without Gemini configuration.
+
+```powershell
 npm.cmd run dev:full
 ```
 
-Open **http://127.0.0.1:5173/**. This command serves both the frontend and `/api/extract`. For Gemini, create `.env.local` from `.env.example` only if absent, then privately set server-side `GEMINI_API_KEY` and `GEMINI_MODEL`. Keep an existing configured file. Manual entry needs no key; `npm.cmd run dev` and `preview` serve only the frontend. See [AI Import Setup](docs/ai-import.md) for configuration and limits. On other platforms, use `npm` instead of `npm.cmd`.
+Open **http://127.0.0.1:5173/**. This serves both the frontend and `/api/extract`; restart after changing server variables. `npm.cmd run dev` serves only the frontend. On other platforms use `npm` instead of `npm.cmd`. See [AI import setup](docs/ai-import.md) for model configuration and Vercel environment settings.
 
-## Replit
+### Run Tests
 
-Replit ran the same calculation module used by the webpage: **61 servings** with default caps and **45** with Tomato & Egg Stir-fry capped at zero. Compare the dependency-free scenarios:
+```powershell
+npm.cmd test
+npm.cmd run build
+```
+
+## How We Use Replit
+
+[Replit](https://replit.com/@KarenAijo/FreshPlate-Planner-Demo) ran the **same core planning module** used by the webpage. The fixed synthetic scenarios produce **61 servings** with default caps and **45 servings** when Tomato & Egg Stir-fry has a zero cap.
 
 ```sh
 node demo/run.js compare
 ```
 
-Planning runs locally, without a Replit API or AI quantity calculations.
+These are scenario results, distinct from the video's 27-serving example. The CLI requires no React, API key or installed dependencies. Vercel hosts the live product; browser planning does not call Replit. See the [proof of use](submission/SDC2026_Starlight_Replit_POU.pdf) and [full demo guide](docs/demo-guide.md).
 
-## Prototype scope
+## Challenges & Learnings
 
-Demo data is fictional; Business mode uses today's date. Confirmed inventory, recipes and history stay in the current browser's localStorage, with no login or cross-device synchronization. Gemini receives only the selected extraction source through the server function. The deterministic heuristic is not globally optimal and does not forecast sales. Date priority is not a food-safety judgment.
+- **Extraction needs review:** AI fields pass through an editable preview and deterministic validation before the existing confirmation path writes data.
+- **Dishes compete for ingredients:** A single remaining-stock budget and batch allocations prevent separate dishes from reusing the same quantities.
+- **Approval is different from consumption:** Snapshot-based state transitions preserve existing-order reservations and prevent repeated completion or cancellation from changing stock twice.
 
-See the [Demo Guide](docs/demo-guide.md), [Stock & Recipe Entry](docs/data-entry.md), and [Release Guide](docs/release-guide.md) for detailed workflows, validation, migration and release preparation.
+## Future Improvements
+
+- Run the planned restaurant pilot to compare entry time and observe preparation, corrections and edible discard.
+- Refine import review and recipe entry using pilot feedback.
+- Explore cross-device data management beyond the current browser-local prototype.
+
+## Team
+
+| Name | Role | GitHub |
+| --- | --- | --- |
+| WANG HAOTONG | Sole member: product design, implementation, AI integration, testing and presentation, with disclosed AI-assisted development | [@ShatteredDreams819726](https://github.com/ShatteredDreams819726) |
+
+## Submission Checklist
+
+- ☑ Team, domain and SDG information filled in.
+- ☑ Repository, live prototype and slide deck links added.
+- ☑ Demo video link added.
+- ☑ Replit use described and proof of use included.
+- ☑ Preliminary submission and technology declaration PDFs included.
+- ☑ Three PDFs named with Starlight and checked for readable, unchanged content.
+- ☑ Local frontend/API startup, automated tests, build and shared-core scenarios verified.
+- ☑ Credential-pattern review of the four submission files and local repository history completed.
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE), as published in this repository.
