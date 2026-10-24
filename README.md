@@ -155,7 +155,7 @@ These are scenario results, distinct from the video's 27-serving example. The CL
 - ☑ Demo video link added.
 - ☑ Replit use described and proof of use included.
 - ☑ Preliminary submission and technology declaration PDFs included.
-- ☑ Three PDFs named with Starlight and checked for readable, unchanged content.
+- ☑ Three PDFs named with Team name and checked for readable, unchanged content.
 - ☑ Local frontend/API startup, automated tests, build and shared-core scenarios verified.
 - ☑ Credential-pattern review of the four submission files and local repository history completed.
 
