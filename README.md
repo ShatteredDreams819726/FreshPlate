@@ -92,7 +92,7 @@ flowchart LR
     G --> E
 ```
 
-Planning runs in the browser. Confirmed records, recipe/allocation snapshots and activity stay in that browser. Demo mode uses a fixed planning date; Business mode uses today. Date priority does not assess food safety, and the planning heuristic does not forecast sales or guarantee a global optimum.
+Planning runs in the browser. Confirmed records, recipe/allocation snapshots and activity stay in that browser. Demo mode uses a fixed planning date; Business mode uses today. 
 
 ## How to Run
 
