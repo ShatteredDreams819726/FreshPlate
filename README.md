@@ -146,7 +146,7 @@ These are scenario results, distinct from the video's 27-serving example. The CL
 
 | Name | Role | GitHub |
 | --- | --- | --- |
-| WANG HAOTONG | Sole member: product design, implementation, AI integration, testing and presentation, with disclosed AI-assisted development | [@ShatteredDreams819726](https://github.com/ShatteredDreams819726) |
+| WANG HAOTONG | Sole member: product design, implementation, AI integration, testing ,presentation and all files writting. | [@ShatteredDreams819726](https://github.com/ShatteredDreams819726) |
 
 ## Submission Checklist
 
