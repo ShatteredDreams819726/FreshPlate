@@ -22,7 +22,7 @@ Turn soon-to-expire stock into actionable prep plans for small Chinese restauran
 | Replit Project | [FreshPlate Planner Demo](https://replit.com/@KarenAijo/FreshPlate-Planner-Demo) |
 | Live Demo | [Try FreshPlate](https://fresh-plate-psi.vercel.app) |
 | Slide Deck | [View slides](https://canva.link/8moo9czxbcgl2w0) |
-| Demo Video | [Watch the demo](https://youtu.be/o4RcHGZAxS8) |
+| Demo Video | [Watch the demo](https://youtu.be/Q4n5Z2FIH6s) |
 | Preliminary Submission | [Project proposal](submission/SDC2026_Starlight_Preliminary.pdf) |
 | Technology Declaration | [Technical & Tools Declaration](submission/SDC2026_Starlight_TechDeclaration.pdf) |
 | Replit Proof of Use | [Replit evidence](submission/SDC2026_Starlight_Replit_POU.pdf) |
